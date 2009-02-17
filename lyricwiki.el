@@ -57,8 +57,7 @@
         (_song (concat "&song=" song))
         (fmt "&fmt=text")
         (url (concat api _artist _song fmt)))
-    (http-get url nil nil nil (concat artist " - " song) 'iso-8859-1)))
-
+    (http-get url nil nil nil (capitalize (concat artist " - " song)) 'iso-8859-1)))
 
 (provide 'lyricwiki)
 ;;; lyricwiki.el ends here
