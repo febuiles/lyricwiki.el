@@ -4,7 +4,7 @@
      
 ;; Author: Federico Builes <federico.builes@gmail.com>
 ;; Created: 1 Dec 2008
-;; Version: 0.1
+;; Version: 0.2
 ;; Keywords: lyrics lyricwiki
      
 ;; This file is NOT part of GNU Emacs.
@@ -40,17 +40,29 @@
 ;; (add-to-list 'load-path "~/some_directory/lyricwiki.el")
 ;; (require 'lyricwiki)
 ;;
-;; Now just press M-x lyrics and get your lyrics.
+;; Now just press: 
+;;
+;;   M-x lyrics 
+;;
+;; And get your lyrics.
+;; 
+;; If you're using OS X and iTunes then you can use the function:
+;;
+;;   M-x lyrics-itunes
+;;
+;; And it will automatically get the current artist/song in iTunes 
+;; and fetch the lyrics for you.
 
 ;;; Code:
 
 (let* ((path (file-name-directory
               (or (buffer-file-name) load-file-name))))
   (add-to-list 'load-path "./"))
+(require 'osx-osascript)
 (require 'http-get)
 
 (defun lyrics (artist song)
-  ;; Fetches the lyrics of SONG by ARTIST from LyricWiki.com
+  "Fetches the lyrics of SONG by ARTIST from LyricWiki.com"
   (interactive "sArtist: \nsSong: ")
   (let* ((api "http://lyricwiki.org/api.php?")
         (_artist (concat "artist=" artist))
@@ -58,6 +70,45 @@
         (fmt "&fmt=text")
         (url (concat api _artist _song fmt)))
     (http-get url nil nil nil (capitalize (concat artist " - " song)) 'iso-8859-1)))
+
+;; Only available in OS X.
+(defun lyrics-itunes ()
+  "Grabs current playing song in iTunes and fetches its lyrics"
+  (interactive)
+  (let* ((song-info (itunes-get-info-sexp))
+        (artist (cadadr song-info))
+        (song (cadar song-info)))
+        (lyrics artist song)))
+
+;; Borrowed these functions from osx-itunes.el
+
+(defun itunes-do (&rest pgm)
+  "Tell iTunes to run the osascript PGM."
+  (osascript-run-str-elispify `("
+set retval to false
+tell application \"iTunes\"
+" ,@pgm "
+end tell
+elispify(retval)
+")))
+
+(defun itunes-get-info-sexp ()
+  "Tell itunes to tell us about what it is playing."
+  (let* ((osascript-keep-output t)
+         (flist '("artist" "name"))
+         (script nil))
+    (while flist
+      (let ((fname (car flist)))
+        (setq str (format "{\"%s\", %s of currtrack}%s"
+                          fname fname (if script "," ""))))
+      (setq script (cons str script))
+      (setq flist (cdr flist)))
+    (setq itunes-info
+          (itunes-do
+           "set currtrack to current track\n"
+           "set retval to {" script "}"))
+    itunes-info))
+(itunes-get-info-sexp)
 
 (provide 'lyricwiki)
 ;;; lyricwiki.el ends here

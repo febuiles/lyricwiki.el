@@ -14,7 +14,17 @@ Add it to your load list and require it:
     (add-to-list 'load-path "~/some_directory/lyricwiki.el")
     (require 'lyricwiki)
 
-Now just press M-x lyrics and get your lyrics!
+Now just press 
+
+    M-x lyrics 
+
+Adand get your lyrics!
+
+If you're using Mac OS X and iTunes you get some extra goodies. Running:
+
+    M-x lyrics-itunes
+
+will get the current playing song in iTunes and fetch its lyrics.
 
 License, Contact, E-T-C
 -----------------------
@@ -23,4 +33,3 @@ License, Contact, E-T-C
 * You can find me at federico.builes@gmail.com
 * Couldn't find the lyrics you were looking for? Go to
  [http://lyricwiki.org/](http://lyricwiki.org/) and contribute them yourself!
-
