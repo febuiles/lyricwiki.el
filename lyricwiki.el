@@ -110,5 +110,15 @@ elispify(retval)
     itunes-info))
 (itunes-get-info-sexp)
 
+
+(defun lyrics-amarok ()
+  "Grabs current playing song in amarok and fetches its lyrics"
+  (interactive)
+  (let ((song (shell-command-to-string "dcop amarok player title"))
+       (artist (shell-command-to-string "dcop amarok player artist")))
+    (lyrics artist song)))    
+        
+
+
 (provide 'lyricwiki)
 ;;; lyricwiki.el ends here
