@@ -26,6 +26,10 @@ If you're using Mac OS X and iTunes you get some extra goodies. Running:
 
 will get the current playing song in iTunes and fetch its lyrics.
 
+With amarok
+     
+    M-x lyrics-amarok
+
 License, Contact, E-T-C
 -----------------------
 
