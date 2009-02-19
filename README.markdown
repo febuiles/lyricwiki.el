@@ -26,9 +26,15 @@ If you're using Mac OS X and iTunes you get some extra goodies. Running:
 
 will get the current playing song in iTunes and fetch its lyrics.
 
-With amarok
+With Amarok
      
     M-x lyrics-amarok
+
+And finally with Rhythmbox
+    
+    M-x lyrics-rhythmbox
+
+
 
 License, Contact, E-T-C
 -----------------------

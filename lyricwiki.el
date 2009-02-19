@@ -117,6 +117,14 @@ elispify(retval)
   (let ((song (shell-command-to-string "dcop amarok player title"))
        (artist (shell-command-to-string "dcop amarok player artist")))
     (lyrics artist song)))    
+
+(defun lyrics-rhythmbox ()
+  "Grabs current playing song in Rhythmbox and fetches its lyrics"
+  (interactive)
+  (let ((song (shell-command-to-string "rhythmbox-client --print-playing-format %tt"))
+	(artist (shell-command-to-string "rhythmbox-client --print-playing-format %ta")))
+    (lyrics artist song)))
+
         
 
 
