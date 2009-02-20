@@ -46,9 +46,12 @@
 ;;
 ;; And get your lyrics.
 ;; 
-;; If you're using OS X and iTunes then you can use the function:
+;; If you want to automatically fetch the lyrics for the current song in
+;; iTunes (OS X), Amarok or Rhythmbox (Linux) you can use:
 ;;
 ;;   M-x lyrics-itunes
+;;   M-x lyrics-amarok
+;;   M-x lyrics-rhythmbox
 ;;
 ;; And it will automatically get the current artist/song in iTunes 
 ;; and fetch the lyrics for you.
@@ -65,22 +68,36 @@
   "Fetches the lyrics of SONG by ARTIST from LyricWiki.com"
   (interactive "sArtist: \nsSong: ")
   (let* ((api "http://lyricwiki.org/api.php?")
-        (_artist (concat "artist=" artist))
-        (_song (concat "&song=" song))
-        (fmt "&fmt=text")
-        (url (concat api _artist _song fmt)))
+         (_artist (concat "artist=" artist))
+         (_song (concat "&song=" song))
+         (fmt "&fmt=text")
+         (url (concat api _artist _song fmt)))
     (http-get url nil nil nil (capitalize (concat artist " - " song)) 'iso-8859-1)))
 
-;; Only available in OS X.
+(defun lyrics-amarok ()
+  "Grabs current playing song in amarok and fetches its lyrics"
+  (interactive)
+  (let ((song (shell-command-to-string "dcop amarok player title"))
+        (artist (shell-command-to-string "dcop amarok player artist")))
+    (lyrics artist song)))
+
+(defun lyrics-rhythmbox ()
+  "Grabs current playing song in Rhythmbox and fetches its lyrics"
+  (interactive)
+  (let ((song (shell-command-to-string "rhythmbox-client --print-playing-format %tt"))
+	(artist (shell-command-to-string "rhythmbox-client --print-playing-format %ta")))
+    (lyrics artist song)))
+
+;; Only available for iTunes in OS X
 (defun lyrics-itunes ()
   "Grabs current playing song in iTunes and fetches its lyrics"
   (interactive)
   (let* ((song-info (itunes-get-info-sexp))
-        (artist (cadadr song-info))
-        (song (cadar song-info)))
-        (lyrics artist song)))
+         (artist (cadadr song-info))
+         (song (cadar song-info)))
+    (lyrics artist song)))
 
-;; Borrowed these functions from osx-itunes.el
+;; Borrowed the following functions from osx-itunes.el
 
 (defun itunes-do (&rest pgm)
   "Tell iTunes to run the osascript PGM."
@@ -108,25 +125,6 @@ elispify(retval)
            "set currtrack to current track\n"
            "set retval to {" script "}"))
     itunes-info))
-(itunes-get-info-sexp)
-
-
-(defun lyrics-amarok ()
-  "Grabs current playing song in amarok and fetches its lyrics"
-  (interactive)
-  (let ((song (shell-command-to-string "dcop amarok player title"))
-       (artist (shell-command-to-string "dcop amarok player artist")))
-    (lyrics artist song)))    
-
-(defun lyrics-rhythmbox ()
-  "Grabs current playing song in Rhythmbox and fetches its lyrics"
-  (interactive)
-  (let ((song (shell-command-to-string "rhythmbox-client --print-playing-format %tt"))
-	(artist (shell-command-to-string "rhythmbox-client --print-playing-format %ta")))
-    (lyrics artist song)))
-
-        
-
 
 (provide 'lyricwiki)
 ;;; lyricwiki.el ends here

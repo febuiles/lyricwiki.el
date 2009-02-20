@@ -18,22 +18,12 @@ Now just press
 
     M-x lyrics 
 
-Adand get your lyrics!
-
-If you're using Mac OS X and iTunes you get some extra goodies. Running:
+If you want to automatically fetch the lyrics for the current song in
+iTunes (OS X), Amarok or Rhythmbox (Linux) you can use:
 
     M-x lyrics-itunes
-
-will get the current playing song in iTunes and fetch its lyrics.
-
-With Amarok
-     
     M-x lyrics-amarok
-
-And finally with Rhythmbox
-    
     M-x lyrics-rhythmbox
-
 
 
 License, Contact, E-T-C
