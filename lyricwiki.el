@@ -61,7 +61,6 @@
 (let* ((path (file-name-directory
               (or (buffer-file-name) load-file-name))))
   (add-to-list 'load-path "./"))
-(require 'osx-osascript)
 (require 'http-get)
 
 (defun lyrics (artist song)
@@ -92,39 +91,13 @@
 (defun lyrics-itunes ()
   "Grabs current playing song in iTunes and fetches its lyrics"
   (interactive)
-  (let* ((song-info (itunes-get-info-sexp))
-         (artist (cadadr song-info))
-         (song (cadar song-info)))
-    (lyrics artist song)))
-
-;; Borrowed the following functions from osx-itunes.el
-
-(defun itunes-do (&rest pgm)
-  "Tell iTunes to run the osascript PGM."
-  (osascript-run-str-elispify `("
-set retval to false
-tell application \"iTunes\"
-" ,@pgm "
-end tell
-elispify(retval)
-")))
-
-(defun itunes-get-info-sexp ()
-  "Tell itunes to tell us about what it is playing."
-  (let* ((osascript-keep-output t)
-         (flist '("artist" "name"))
-         (script nil))
-    (while flist
-      (let ((fname (car flist)))
-        (setq str (format "{\"%s\", %s of currtrack}%s"
-                          fname fname (if script "," ""))))
-      (setq script (cons str script))
-      (setq flist (cdr flist)))
-    (setq itunes-info
-          (itunes-do
-           "set currtrack to current track\n"
-           "set retval to {" script "}"))
-    itunes-info))
+  (let* ((artist 
+          (shell-command-to-string 
+           "osascript -e'tell application \"iTunes\"' -e'get artist of current track' -e'end tell'"))
+         (song 
+          (shell-command-to-string
+           "osascript -e'tell application \"iTunes\"' -e'get name of current track' -e'end tell'" )))
+    (lyrics (substring artist 0 -1) (substring song 0 -1)))) ; remove trailing ^J
 
 (provide 'lyricwiki)
 ;;; lyricwiki.el ends here
