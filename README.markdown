@@ -6,25 +6,34 @@ with them, nothing too complex.
 
 Installation and Usage
 ------------
-Download lyricwiki.el to some directory:
+Clone the Git repository:
     $ git clone git://github.com/febuiles/lyricwiki.el.git
+
+Or download the .tar.gz file from:
+
+    http://github.com/febuiles/lyricwiki.el/tarball/master
 
 Add it to your load list and require it:
 
     (add-to-list 'load-path "~/some_directory/lyricwiki.el")
     (require 'lyricwiki)
 
-Now just press 
+(Optional) If you want this mode to automatically fetch your current playing
+song in Amarok, iTunes or Rhythmbox then set the defalias in lyricwiki.el to
+whatever you want:
 
-    M-x lyrics 
+    ;; Any of these 3 will do
+    (defalias 'lyrics 'lyrics-itunes)
+    (defalias 'lyrics 'lyrics-amarok)
+    (defalias 'lyrics 'lyrics-rhythmbox)
 
-If you want to automatically fetch the lyrics for the current song in
-iTunes (OS X), Amarok or Rhythmbox (Linux) you can use:
+Now just press:
 
-    M-x lyrics-itunes
-    M-x lyrics-amarok
-    M-x lyrics-rhythmbox
+    M-x lyrics
 
+Finally, if you want to manually enter the song details you can just call:
+
+    M-x lyrics-manual
 
 License, Contact, E-T-C
 -----------------------

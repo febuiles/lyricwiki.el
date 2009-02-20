@@ -3,8 +3,11 @@
 ;; Copyright (C) 2009 Federico Builes
      
 ;; Author: Federico Builes <federico.builes@gmail.com>
+;; Contributors: 
+;; Adolfo Builes <builes.adolfo@gmail.com>
+
 ;; Created: 1 Dec 2008
-;; Version: 0.2
+;; Version: 1.0
 ;; Keywords: lyrics lyricwiki
      
 ;; This file is NOT part of GNU Emacs.
@@ -53,39 +56,36 @@
 ;;   M-x lyrics-amarok
 ;;   M-x lyrics-rhythmbox
 ;;
-;; And it will automatically get the current artist/song in iTunes 
-;; and fetch the lyrics for you.
-
+;; Finally, if you always want me to automatically fetch the current playing 
+;; artist/song then just set me up in the defalias down there!
+;; 
 ;;; Code:
+
+;; Modify the second symbol to use your preferred player:
+;; lyrics-manual: Manually enter the artist and song name.
+;; lyrics-amarok: Use the current playing track in Amarok.
+;; lyrics-itunes: Use the current playing track in iTunes (OS X).
+;; lyrics-rhythmbox: Use the current playing track in Rhythmbox.
+(defalias 'lyrics 'lyrics-manual)
 
 (let* ((path (file-name-directory
               (or (buffer-file-name) load-file-name))))
   (add-to-list 'load-path "./"))
 (require 'http-get)
 
-(defun lyrics (artist song)
-  "Fetches the lyrics of SONG by ARTIST from LyricWiki.com"
-  (interactive "sArtist: \nsSong: ")
-  (let* ((api "http://lyricwiki.org/api.php?")
-         (_artist (concat "artist=" artist))
-         (_song (concat "&song=" song))
-         (fmt "&fmt=text")
-         (url (concat api _artist _song fmt)))
-    (http-get url nil nil nil (capitalize (concat artist " - " song)) 'iso-8859-1)))
-
 (defun lyrics-amarok ()
   "Grabs current playing song in amarok and fetches its lyrics"
   (interactive)
   (let ((song (shell-command-to-string "dcop amarok player title"))
         (artist (shell-command-to-string "dcop amarok player artist")))
-    (lyrics artist song)))
+    (lyrics-manual artist song)))
 
 (defun lyrics-rhythmbox ()
   "Grabs current playing song in Rhythmbox and fetches its lyrics"
   (interactive)
   (let ((song (shell-command-to-string "rhythmbox-client --print-playing-format %tt"))
 	(artist (shell-command-to-string "rhythmbox-client --print-playing-format %ta")))
-    (lyrics artist song)))
+    (lyrics-manual artist song)))
 
 ;; Only available for iTunes in OS X
 (defun lyrics-itunes ()
@@ -97,7 +97,17 @@
          (song 
           (shell-command-to-string
            "osascript -e'tell application \"iTunes\"' -e'get name of current track' -e'end tell'" )))
-    (lyrics (substring artist 0 -1) (substring song 0 -1)))) ; remove trailing ^J
+    (lyrics-manual (substring artist 0 -1) (substring song 0 -1)))) ; remove trailing ^J
+
+(defun lyrics-manual (artist song)
+  "Fetches the lyrics of SONG by ARTIST from LyricWiki.com"
+  (interactive "sArtist: \nsSong: ")
+  (let* ((api "http://lyricwiki.org/api.php?")
+         (_artist (concat "artist=" artist))
+         (_song (concat "&song=" song))
+         (fmt "&fmt=text")
+         (url (concat api _artist _song fmt)))
+    (http-get url nil nil nil (capitalize (concat artist " - " song)) 'iso-8859-1)))
 
 (provide 'lyricwiki)
 ;;; lyricwiki.el ends here
