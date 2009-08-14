@@ -7,7 +7,7 @@
 ;; Adolfo Builes <builes.adolfo@gmail.com>
 
 ;; Created: 1 Dec 2008
-;; Version: 1.0
+;; Version: 1.1
 ;; Keywords: lyrics lyricwiki
 
 ;; This file is NOT part of GNU Emacs.
@@ -66,7 +66,7 @@
 ;; lyrics-amarok: Use the current playing track in Amarok.
 ;; lyrics-itunes: Use the current playing track in iTunes (OS X).
 ;; lyrics-rhythmbox: Use the current playing track in Rhythmbox.
-(defalias 'lyrics 'lyrics-itunes)
+(defalias 'lyrics 'lyrics-manual)
 
 (let* ((path (file-name-directory
               (or (buffer-file-name) load-file-name))))
@@ -78,14 +78,14 @@
   (interactive)
   (let ((song (shell-command-to-string "dcop amarok player title"))
         (artist (shell-command-to-string "dcop amarok player artist")))
-    (lyrics-manual artist song)))
+    (fetch-lyrics artist song)))
 
 (defun lyrics-rhythmbox ()
   "Grabs current playing song in Rhythmbox and fetches its lyrics"
   (interactive)
   (let ((song (shell-command-to-string "rhythmbox-client --print-playing-format %tt"))
 	(artist (shell-command-to-string "rhythmbox-client --print-playing-format %ta")))
-    (lyrics-manual artist song)))
+    (fetch-lyrics artist song)))
 
 ;; Only available for iTunes in OS X
 (defun lyrics-itunes ()
@@ -97,25 +97,26 @@
          (song
           (shell-command-to-string
            "osascript -e'tell application \"iTunes\"' -e'get name of current track' -e'end tell'" )))
-    (lyrics-manual (substring artist 0 -1) (substring song 0 -1)))) ; remove trailing ^J
+    (fetch-lyrics (substring artist 0 -1) (substring song 0 -1))))
 
 (defun lyrics-manual (artist song)
   "Fetches the lyrics of SONG by ARTIST from LyricWiki.com"
   (interactive "sArtist: \nsSong: ")
-  (lyrics artist song))
+  (fetch-lyrics artist song))
 
-(defun lyrics-manual (artist song)
+(defun fetch-lyrics (artist song)
   "Fetches the lyrics of SONG by ARTIST from LyricWiki.com"
   (with-current-buffer (url-retrieve-synchronously (concat "http://lyricwiki.org/" (build-query-string artist song)))
     (re-search-forward "<div class='lyricbox' *>\\(.*\\)$" nil t)
-    (if (equal (match-string 1) nil)
-        (lyric-not-found)
-      ((kill-new (match-string 1))
-       (kill-buffer (current-buffer)))
-      (switch-to-buffer (concat artist (concat " - " song)))
-      (yank)
-      (replace-regexp "<br />" "\n" nil (point-min) (point-max))
-      (goto-char (point-min)))))
+    (let ((match (match-string 1)))
+      (if (equal match nil)
+          (lyric-not-found)
+        (kill-new match)
+        (kill-buffer (current-buffer))
+        (switch-to-buffer (concat artist (concat " - " song)))
+        (yank)
+        (replace-regexp "<br />" "\n" nil (point-min) (point-max))
+        (goto-char (point-min))))))
 
 (defun build-query-string (artist song)
   ;; apply here
