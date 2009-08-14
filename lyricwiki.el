@@ -68,11 +68,6 @@
 ;; lyrics-rhythmbox: Use the current playing track in Rhythmbox.
 (defalias 'lyrics 'lyrics-manual)
 
-(let* ((path (file-name-directory
-              (or (buffer-file-name) load-file-name))))
-  (add-to-list 'load-path "./"))
-(require 'http-get)
-
 (defun lyrics-amarok ()
   "Grabs current playing song in amarok and fetches its lyrics"
   (interactive)
