@@ -1,39 +1,39 @@
 ;;; lyricwiki.el --- an Emacs mode to fetch lyrics from LyricWiki
-     
+
 ;; Copyright (C) 2009 Federico Builes
-     
+
 ;; Author: Federico Builes <federico.builes@gmail.com>
-;; Contributors: 
+;; Contributors:
 ;; Adolfo Builes <builes.adolfo@gmail.com>
 
 ;; Created: 1 Dec 2008
 ;; Version: 1.0
 ;; Keywords: lyrics lyricwiki
-     
+
 ;; This file is NOT part of GNU Emacs.
-       
+
 ;; This program is free software; you can redistribute it and/or
 ;; modify it under the terms of the GNU General Public License as
 ;; published by the Free Software Foundation; either version 2 of
 ;; the License, or (at your option) any later version.
-          
+
 ;; This program is distributed in the hope that it will be
 ;; useful, but WITHOUT ANY WARRANTY; without even the implied
 ;; warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR
 ;; PURPOSE.  See the GNU General Public License for more details.
-          
+
 ;; You should have received a copy of the GNU General Public
 ;; License along with this program; if not, write to the Free
 ;; Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
 ;; Boston, MA 02110-1301 USA
-     
+
 ;;; Commentary:
 
-;; This is an Emacs mode to fetch lyrics from LyricWiki.com. 
-;; Just press M-x lyrics, enter your artist and the song and you 
+;; This is an Emacs mode to fetch lyrics from LyricWiki.com.
+;; Just press M-x lyrics, enter your artist and the song and you
 ;; should get your lyrics right away.
 
-;; Installation: 
+;; Installation:
 
 ;; Download lyricwiki.el to some directory:
 ;; $ git clone git://github.com/febuiles/lyricwiki.el.git
@@ -43,12 +43,12 @@
 ;; (add-to-list 'load-path "~/some_directory/lyricwiki.el")
 ;; (require 'lyricwiki)
 ;;
-;; Now just press: 
+;; Now just press:
 ;;
-;;   M-x lyrics 
+;;   M-x lyrics
 ;;
 ;; And get your lyrics.
-;; 
+;;
 ;; If you want to automatically fetch the lyrics for the current song in
 ;; iTunes (OS X), Amarok or Rhythmbox (Linux) you can use:
 ;;
@@ -56,9 +56,9 @@
 ;;   M-x lyrics-amarok
 ;;   M-x lyrics-rhythmbox
 ;;
-;; Finally, if you always want me to automatically fetch the current playing 
+;; Finally, if you always want me to automatically fetch the current playing
 ;; artist/song then just set me up in the defalias down there!
-;; 
+;;
 ;;; Code:
 
 ;; Modify the second symbol to use your preferred player:
@@ -66,7 +66,7 @@
 ;; lyrics-amarok: Use the current playing track in Amarok.
 ;; lyrics-itunes: Use the current playing track in iTunes (OS X).
 ;; lyrics-rhythmbox: Use the current playing track in Rhythmbox.
-(defalias 'lyrics 'lyrics-manual)
+(defalias 'lyrics 'lyrics-itunes)
 
 (let* ((path (file-name-directory
               (or (buffer-file-name) load-file-name))))
@@ -91,10 +91,10 @@
 (defun lyrics-itunes ()
   "Grabs current playing song in iTunes and fetches its lyrics"
   (interactive)
-  (let* ((artist 
-          (shell-command-to-string 
+  (let* ((artist
+          (shell-command-to-string
            "osascript -e'tell application \"iTunes\"' -e'get artist of current track' -e'end tell'"))
-         (song 
+         (song
           (shell-command-to-string
            "osascript -e'tell application \"iTunes\"' -e'get name of current track' -e'end tell'" )))
     (lyrics-manual (substring artist 0 -1) (substring song 0 -1)))) ; remove trailing ^J
@@ -102,12 +102,33 @@
 (defun lyrics-manual (artist song)
   "Fetches the lyrics of SONG by ARTIST from LyricWiki.com"
   (interactive "sArtist: \nsSong: ")
-  (let* ((api "http://lyricwiki.org/api.php?")
-         (_artist (concat "artist=" artist))
-         (_song (concat "&song=" song))
-         (fmt "&fmt=text")
-         (url (concat api _artist _song fmt)))
-    (http-get url nil nil nil (capitalize (concat artist " - " song)) 'iso-8859-1)))
+  (lyrics artist song))
+
+(defun lyrics-manual (artist song)
+  "Fetches the lyrics of SONG by ARTIST from LyricWiki.com"
+  (with-current-buffer (url-retrieve-synchronously (concat "http://lyricwiki.org/" (build-query-string artist song)))
+    (re-search-forward "<div class='lyricbox' *>\\(.*\\)$" nil t)
+    (if (equal (match-string 1) nil)
+        (lyric-not-found)
+      ((kill-new (match-string 1))
+       (kill-buffer (current-buffer)))
+      (switch-to-buffer (concat artist (concat " - " song)))
+      (yank)
+      (replace-regexp "<br />" "\n" nil (point-min) (point-max))
+      (goto-char (point-min)))))
+
+(defun build-query-string (artist song)
+  ;; apply here
+  (let ((artist (replace-regexp-in-string "\s" "_" artist))
+        (song (replace-regexp-in-string "\s" "_" song)))
+    (capitalize (concat artist (concat ":" song)))))
+
+(defun lyric-not-found ()
+  (message "Lyrics not found"))
 
 (provide 'lyricwiki)
 ;;; lyricwiki.el ends here
+
+
+
+
