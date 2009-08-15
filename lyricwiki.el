@@ -76,14 +76,15 @@
   (interactive)
   (let ((song (shell-command-to-string "dcop amarok player title"))
         (artist (shell-command-to-string "dcop amarok player artist")))
-    (fetch-lyrics artist song)))
+       (fetch-lyrics (substring artist 0 -1) (substring song 0 -1))))
+
 
 (defun lyrics-rhythmbox ()
   "Grabs current playing song in Rhythmbox and fetches its lyrics"
   (interactive)
   (let ((song (shell-command-to-string "rhythmbox-client --print-playing-format %tt"))
 	(artist (shell-command-to-string "rhythmbox-client --print-playing-format %ta")))
-    (fetch-lyrics artist song)))
+       (fetch-lyrics (substring artist 0 -1) (substring song 0 -1))))
 
 ;; Only available for iTunes in OS X
 (defun lyrics-itunes ()
