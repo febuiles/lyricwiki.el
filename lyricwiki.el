@@ -66,6 +66,9 @@
 ;; lyrics-amarok: Use the current playing track in Amarok.
 ;; lyrics-itunes: Use the current playing track in iTunes (OS X).
 ;; lyrics-rhythmbox: Use the current playing track in Rhythmbox.
+
+(require 'url)
+
 (defalias 'lyrics 'lyrics-manual)
 
 (defun lyrics-amarok ()
