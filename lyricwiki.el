@@ -105,6 +105,7 @@
 
 (defun fetch-lyrics (artist song)
   "Fetches the lyrics of SONG by ARTIST from LyricWiki.com"
+  (kill-new (build-query-string artist song))
   (with-current-buffer (url-retrieve-synchronously (concat "http://lyricwiki.org/" (build-query-string artist song)))
     (re-search-forward "<div class='lyricbox' *>\\(.*\\)$" nil t)
     (let ((match (match-string 1)))
@@ -117,11 +118,15 @@
         (replace-regexp "<br />" "\n" nil (point-min) (point-max))
         (goto-char (point-min))))))
 
+(defun capitalize-string (string)
+  "Correctly capitalize english strings"
+  (concat (capitalize (substring string 0 1)) (substring string 1)))
+
 (defun build-query-string (artist song)
   ;; apply here
   (let ((artist (replace-regexp-in-string "\s" "_" artist))
         (song (replace-regexp-in-string "\s" "_" song)))
-    (capitalize (concat artist (concat ":" song)))))
+    (capitalize-string (concat artist (concat ":" song)))))
 
 (defun lyric-not-found ()
   (message "Lyrics not found"))
