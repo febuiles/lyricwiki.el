@@ -7,7 +7,7 @@
 ;; Adolfo Builes <builes.adolfo@gmail.com>
 
 ;; Created: 1 Dec 2008
-;; Version: 1.1
+;; Version: 1.2
 ;; Keywords: lyrics lyricwiki
 
 ;; This file is NOT part of GNU Emacs.
@@ -92,10 +92,10 @@
   (interactive)
   (let* ((artist
           (shell-command-to-string
-           "osascript -e'tell application \"iTunes\"' -e'get artist of current track' -e'end tell'"))
+           "arch -i386 osascript -e'tell application \"iTunes\"' -e'get artist of current track' -e'end tell'"))
          (song
           (shell-command-to-string
-           "osascript -e'tell application \"iTunes\"' -e'get name of current track' -e'end tell'" )))
+           "arch -i386 osascript -e'tell application \"iTunes\"' -e'get name of current track' -e'end tell'" )))
     (fetch-lyrics (substring artist 0 -1) (substring song 0 -1))))
 
 (defun lyrics-manual (artist song)
