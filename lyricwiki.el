@@ -68,15 +68,35 @@
 ;; lyrics-rhythmbox: Use the current playing track in Rhythmbox.
 
 (require 'url)
+(require 'dbus)
 
 (defalias 'lyrics 'lyrics-manual)
+
+;; (let ((s "t:3 a:3 y:5") (x "a"))
+;; (01:11:40 PM) bojohan:   (and (string-match (format "\\<%s:\\([0-9]+\\)\\>" x) s)
+;; (01:11:40 PM) bojohan:        (match-string 1 s)))
+;; (01:11:43 PM) bojohan:   => "3
+
+
+(defun amarok-song () 
+  (interactive)
+  (let ((trackMetadata (shell-command-to-string "qdbus org.mpris.amarok /Player GetMetadata")))
+        (and (string-match (format "\\<%s: \\([ \\\|:';\?\/>\.<,0-9A-Za-z]+\\)\\>" "title") trackMetadata))
+	(match-string 1 trackMetadata)))
+
+(defun amarok-artist () 
+  (interactive)
+  (let ((trackMetadata (shell-command-to-string "qdbus org.mpris.amarok /Player GetMetadata")))
+        (and (string-match (format "\\<%s: \\([ \\\|:';\?\/>\.<,0-9A-Za-z]+\\)\\>" "artist") trackMetadata))
+	(match-string 1 trackMetadata)))
+
 
 (defun lyrics-amarok ()
   "Grabs current playing song in amarok and fetches its lyrics"
   (interactive)
-  (let ((song (shell-command-to-string "dcop amarok player title"))
-        (artist (shell-command-to-string "dcop amarok player artist")))
-       (fetch-lyrics (substring artist 0 -1) (substring song 0 -1))))
+  (let ((artist (amarok-artist ))
+	(song (amarok-song)))       	
+        (fetch-lyrics artist song)))
 
 
 (defun lyrics-rhythmbox ()
