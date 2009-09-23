@@ -68,14 +68,10 @@
 ;; lyrics-rhythmbox: Use the current playing track in Rhythmbox.
 
 (require 'url)
-(require 'dbus)
+
 
 (defalias 'lyrics 'lyrics-manual)
 
-;; (let ((s "t:3 a:3 y:5") (x "a"))
-;; (01:11:40 PM) bojohan:   (and (string-match (format "\\<%s:\\([0-9]+\\)\\>" x) s)
-;; (01:11:40 PM) bojohan:        (match-string 1 s)))
-;; (01:11:43 PM) bojohan:   => "3
 
 
 (defun amarok-song () 
