@@ -136,10 +136,9 @@
 
 (defun build-query-string (artist song)
   ;; apply here
-  (let ((artist (replace-regexp-in-string "\s" "_" artist))
-        (song (replace-regexp-in-string "\s" "_" song)))
-    (capitalize-string (concat artist (concat ":" song)))))
-
+  (let ((artist (replace-regexp-in-string "\s" "_" (mapconcat 'capitalize-string (split-string artist) " ")))
+        (song (replace-regexp-in-string "\s" "_" (mapconcat 'capitalize-string (split-string song) " "))))
+    (concat artist (concat ":" song))))
 
 (defun lyric-not-found ()
   (message "Lyrics not found"))
