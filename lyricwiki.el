@@ -7,7 +7,7 @@
 ;; Adolfo Builes <builes.adolfo@gmail.com>
 
 ;; Created: 1 Dec 2008
-;; Version: 1.2
+;; Version: 1.3
 ;; Keywords: lyrics lyricwiki
 
 ;; This file is NOT part of GNU Emacs.
@@ -66,10 +66,9 @@
 ;; lyrics-amarok: Use the current playing track in Amarok.
 ;; lyrics-itunes: Use the current playing track in iTunes (OS X).
 ;; lyrics-rhythmbox: Use the current playing track in Rhythmbox.
-
 (require 'url)
 
-(defalias 'lyrics 'lyrics-manual)
+(defalias 'lyrics 'lyrics-itunes)
 
 (defun amarok-song ()
   (interactive)
@@ -90,7 +89,6 @@
   (let ((artist (amarok-artist ))
         (song (amarok-song)))
     (fetch-lyrics artist song)))
-
 
 (defun lyrics-rhythmbox ()
   "Grabs current playing song in Rhythmbox and fetches its lyrics"
@@ -120,8 +118,8 @@
 (defun fetch-lyrics (artist song)
   "Fetches the lyrics of SONG by ARTIST from LyricWiki.com"
   (kill-new (build-query-string artist song))
-  (with-current-buffer (url-retrieve-synchronously (concat "http://lyricwiki.org/" (build-query-string artist song)))
-    (re-search-forward "<div class='lyricbox' *>\\(.*\\)$" nil t)
+  (with-current-buffer (url-retrieve-synchronously (concat "http://lyrics.wikia.com/" (build-query-string artist song)))
+    (re-search-forward "height='17'/></a></div>\\(.*\\)<!--" nil t) ; hack, we need to do something about this.
     (let ((match (match-string 1)))
       (if (equal match nil)
           (lyric-not-found)
@@ -135,11 +133,6 @@
 (defun capitalize-string (string)
   "Correctly capitalize english strings"
   (concat (capitalize (substring string 0 1)) (substring string 1)))
-
-(defun capitalize-string (string)
-  "Correctly capitalize english strings"
-  (concat (capitalize (substring string 0 1)) (substring string 1)))
-
 
 (defun build-query-string (artist song)
   ;; apply here
