@@ -68,7 +68,7 @@
 ;; lyrics-rhythmbox: Use the current playing track in Rhythmbox.
 (require 'url)
 
-(defalias 'lyrics 'lyrics-itunes)
+(defalias 'lyrics 'lyrics-manual)
 
 (defun amarok-song ()
   (interactive)
@@ -82,9 +82,8 @@
     (and (string-match (format "\\<%s: \\([ \\\|:';\?\/>\.<,0-9A-Za-z¢-ÿ]+\\)\\>" "artist") trackMetadata))
     (match-string 1 trackMetadata)))
 
-
 (defun lyrics-amarok ()
-  "Grabs current playing song in amarok and fetches its lyrics"
+  "Grabs current playing song in Amarok and fetches its lyrics"
   (interactive)
   (let ((artist (amarok-artist ))
         (song (amarok-song)))
@@ -96,7 +95,6 @@
   (let ((song (shell-command-to-string "rhythmbox-client --print-playing-format %tt"))
         (artist (shell-command-to-string "rhythmbox-client --print-playing-format %ta")))
     (fetch-lyrics (substring artist 0 -1) (substring song 0 -1))))
-
 
 ;; Only available for iTunes in OS X
 (defun lyrics-itunes ()
