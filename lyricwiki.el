@@ -71,20 +71,34 @@
 
 (defalias 'lyrics 'lyrics-manual)
 
+(defun amarok-song ()
+  (interactive)
+  (let ((trackMetadata (shell-command-to-string "qdbus org.mpris.amarok /Player GetMetadata")))
+    (and (string-match (format "\\<%s: \\([ \\\|:';\?\/>\.<,0-9A-Za-z¢-ÿ]+\\)\\>" "title") trackMetadata))
+    (match-string 1 trackMetadata)))
+
+(defun amarok-artist ()
+  (interactive)
+  (let ((trackMetadata (shell-command-to-string "qdbus org.mpris.amarok /Player GetMetadata")))
+    (and (string-match (format "\\<%s: \\([ \\\|:';\?\/>\.<,0-9A-Za-z¢-ÿ]+\\)\\>" "artist") trackMetadata))
+    (match-string 1 trackMetadata)))
+
+
 (defun lyrics-amarok ()
   "Grabs current playing song in amarok and fetches its lyrics"
   (interactive)
-  (let ((song (shell-command-to-string "dcop amarok player title"))
-        (artist (shell-command-to-string "dcop amarok player artist")))
-       (fetch-lyrics (substring artist 0 -1) (substring song 0 -1))))
+  (let ((artist (amarok-artist ))
+        (song (amarok-song)))
+    (fetch-lyrics artist song)))
 
 
 (defun lyrics-rhythmbox ()
   "Grabs current playing song in Rhythmbox and fetches its lyrics"
   (interactive)
   (let ((song (shell-command-to-string "rhythmbox-client --print-playing-format %tt"))
-	(artist (shell-command-to-string "rhythmbox-client --print-playing-format %ta")))
-       (fetch-lyrics (substring artist 0 -1) (substring song 0 -1))))
+        (artist (shell-command-to-string "rhythmbox-client --print-playing-format %ta")))
+    (fetch-lyrics (substring artist 0 -1) (substring song 0 -1))))
+
 
 ;; Only available for iTunes in OS X
 (defun lyrics-itunes ()
@@ -122,18 +136,20 @@
   "Correctly capitalize english strings"
   (concat (capitalize (substring string 0 1)) (substring string 1)))
 
+(defun capitalize-string (string)
+  "Correctly capitalize english strings"
+  (concat (capitalize (substring string 0 1)) (substring string 1)))
+
+
 (defun build-query-string (artist song)
   ;; apply here
   (let ((artist (replace-regexp-in-string "\s" "_" artist))
         (song (replace-regexp-in-string "\s" "_" song)))
     (capitalize-string (concat artist (concat ":" song)))))
 
+
 (defun lyric-not-found ()
   (message "Lyrics not found"))
 
 (provide 'lyricwiki)
 ;;; lyricwiki.el ends here
-
-
-
-
