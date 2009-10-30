@@ -70,6 +70,10 @@
 
 (defalias 'lyrics 'lyrics-manual)
 
+;; Stop modifying stuff here
+
+(defalias 'gsub 'replace-regexp-in-string)
+
 (defun amarok-song ()
   (interactive)
   (let ((trackMetadata (shell-command-to-string "qdbus org.mpris.amarok /Player GetMetadata")))
@@ -121,12 +125,26 @@
     (let ((match (match-string 1)))
       (if (equal match nil)
           (lyric-not-found)
-        (kill-new match)
+        (kill-new (decode-entities match))
         (kill-buffer (current-buffer))
         (switch-to-buffer (concat artist (concat " - " song)))
         (yank)
         (replace-regexp "<br />" "\n" nil (point-min) (point-max))
         (goto-char (point-min))))))
+
+(defun decode-entities (dirty-string)
+  "Interprets a string of space-separated numbers as an
+ASCII string"
+  (mapconcat (lambda (x) (format "%c" (string-to-number x)))
+             (split-string (clean-encoded-string dirty-string))
+             ""))
+
+(defun clean-encoded-string (string)
+  "Removes useless characters and replaces linebreaks with a
+line-feed (LF) char."
+  (gsub ";" " "                                   ; add an empty space to split-string later
+   (gsub "&#" ""                                  ; first 2 characters are useless
+    (gsub "\\(\n\\|<br />\\)" "&#10; " string)))) ; replace line break with LF (10)
 
 (defun capitalize-string (string)
   "Correctly capitalize english strings"
