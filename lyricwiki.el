@@ -1,4 +1,4 @@
-;;; lyricwiki.el --- an Emacs mode to fetch lyrics from LyricWiki
+;;; lyricwiki.el --- an Emacs mode to fetch lyrics.
 
 ;; Copyright (C) 2009 Federico Builes
 
@@ -7,7 +7,7 @@
 ;; Adolfo Builes <builes.adolfo@gmail.com>
 
 ;; Created: 1 Dec 2008
-;; Version: 1.3
+;; Version: 1.4
 ;; Keywords: lyrics lyricwiki
 
 ;; This file is NOT part of GNU Emacs.
@@ -29,7 +29,7 @@
 
 ;;; Commentary:
 
-;; This is an Emacs mode to fetch lyrics from LyricWiki.com.
+;; This is an Emacs mode to fetch lyrics different online sources.
 ;; Just press M-x lyrics, enter your artist and the song and you
 ;; should get your lyrics right away.
 
@@ -72,8 +72,6 @@
 
 ;; Stop modifying stuff here
 
-(defalias 'gsub 'replace-regexp-in-string)
-
 (defun amarok-song ()
   (interactive)
   (let ((trackMetadata (shell-command-to-string "qdbus org.mpris.amarok /Player GetMetadata")))
@@ -100,7 +98,7 @@
         (artist (shell-command-to-string "rhythmbox-client --print-playing-format %ta")))
     (fetch-lyrics (substring artist 0 -1) (substring song 0 -1))))
 
-;; Only available for iTunes in OS X
+;; Only available for OS X
 (defun lyrics-itunes ()
   "Grabs current playing song in iTunes and fetches its lyrics"
   (interactive)
@@ -112,49 +110,35 @@
            "arch -i386 osascript -e'tell application \"iTunes\"' -e'get name of current track' -e'end tell'" )))
     (fetch-lyrics (substring artist 0 -1) (substring song 0 -1))))
 
+
 (defun lyrics-manual (artist song)
-  "Fetches the lyrics of SONG by ARTIST from LyricWiki.com"
+  "Fetches the lyrics of SONG by ARTIST"
   (interactive "sArtist: \nsSong: ")
   (fetch-lyrics artist song))
 
 (defun fetch-lyrics (artist song)
-  "Fetches the lyrics of SONG by ARTIST from LyricWiki.com"
+  "Fetches the lyrics of SONG by ARTIST"
   (kill-new (build-query-string artist song))
-  (with-current-buffer (url-retrieve-synchronously (concat "http://lyrics.wikia.com/" (build-query-string artist song)))
-    (re-search-forward "height='17'/></a></div>\\(.*\\)<!--" nil t) ; hack, we need to do something about this.
+  (with-current-buffer (url-retrieve-synchronously (concat "http://www.lyricsplugin.com/plugin/" (build-query-string artist song)))
+    (re-search-forward "<div id=\"lyrics\">\\(\\(.*\n\\)*\\)</div>\n\n<div id=\"admin\">" nil t) ; yarly.
     (let ((match (match-string 1)))
       (if (equal match nil)
           (lyric-not-found)
-        (kill-new (decode-entities match))
+        (kill-new match)
         (kill-buffer (current-buffer))
         (switch-to-buffer (concat artist (concat " - " song)))
         (yank)
-        (replace-regexp "<br />" "\n" nil (point-min) (point-max))
+        (replace-regexp "<br />" "" nil (point-min) (point-max))
         (goto-char (point-min))))))
-
-(defun decode-entities (dirty-string)
-  "Interprets a string of space-separated numbers as an
-ASCII string"
-  (mapconcat (lambda (x) (format "%c" (string-to-number x)))
-             (split-string (clean-encoded-string dirty-string))
-             ""))
-
-(defun clean-encoded-string (string)
-  "Removes useless characters and replaces linebreaks with a
-line-feed (LF) char."
-  (gsub ";" " "                                   ; add an empty space to split-string later
-   (gsub "&#" ""                                  ; first 2 characters are useless
-    (gsub "\\(\n\\|<br />\\)" "&#10; " string)))) ; replace line break with LF (10)
 
 (defun capitalize-string (string)
   "Correctly capitalize english strings"
   (concat (capitalize (substring string 0 1)) (substring string 1)))
 
 (defun build-query-string (artist song)
-  ;; apply here
-  (let ((artist (replace-regexp-in-string "\s" "_" (mapconcat 'capitalize-string (split-string artist) " ")))
-        (song (replace-regexp-in-string "\s" "_" (mapconcat 'capitalize-string (split-string song) " "))))
-    (concat artist (concat ":" song))))
+  (let ((artist (replace-regexp-in-string "\s" "%20" (mapconcat 'capitalize-string (split-string artist) " ")))
+        (song (replace-regexp-in-string "\s" "%20" (mapconcat 'capitalize-string (split-string song) " "))))
+    (format "?title=%s&artist=%s" song artist)))
 
 (defun lyric-not-found ()
   (message "Lyrics not found"))

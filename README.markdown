@@ -3,10 +3,9 @@ LyricWiki - An Emacs mode to fetch lyrics
 
 **Update**: The LyricWiki API was [brought
   down](http://groups.google.com/group/lyricwiki-api/browse_thread/thread/733ccd919d654040) by the
-  awesome music labels, so we're scrapping the HTML to obtain lyrics. This fetch method is flaky for
-  some lyrics so please open up an issue if you find any problems.
+  awesome music labels, so we're obtaining the lyrics from somewhere else (but maintaining the same name).
 
-This small mode fetches your lyrics from LyricWiki.com and opens a new buffer
+This small mode fetches your lyrics from different online sources and opens a new buffer
 with them.
 
 Installation and Usage
@@ -45,6 +44,5 @@ Helping, Contact, E-T-C
 --------------------------------
 * Want to help? If you find any lyrics rendering with weird characters please
   report them in the Issues tracker.
-* You can find me at federico.builes@gmail.com
-* Couldn't find the lyrics you were looking for? Go to
- [http://lyricwiki.org/](http://lyricwiki.org/) and contribute them yourself!
+
+
