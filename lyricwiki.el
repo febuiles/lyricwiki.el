@@ -128,7 +128,7 @@
         (kill-buffer (current-buffer))
         (switch-to-buffer (concat artist (concat " - " song)))
         (yank)
-        (replace-regexp "<br />" "" nil (point-min) (point-max))
+        (replace-regexp "<br />.*$" "" nil (point-min) (point-max))
         (goto-char (point-min))))))
 
 (defun capitalize-string (string)
