@@ -110,7 +110,6 @@
            "arch -i386 osascript -e'tell application \"iTunes\"' -e'get name of current track' -e'end tell'" )))
     (fetch-lyrics (substring artist 0 -1) (substring song 0 -1))))
 
-
 (defun lyrics-manual (artist song)
   "Fetches the lyrics of SONG by ARTIST"
   (interactive "sArtist: \nsSong: ")
@@ -118,7 +117,6 @@
 
 (defun fetch-lyrics (artist song)
   "Fetches the lyrics of SONG by ARTIST"
-  (kill-new (build-query-string artist song))
   (with-current-buffer (url-retrieve-synchronously (concat "http://www.lyricsplugin.com/plugin/" (build-query-string artist song)))
     (re-search-forward "<div id=\"lyrics\">\\(\\(.*\n\\)*\\)</div>\n\n<div id=\"admin\">" nil t) ; yarly.
     (let ((match (match-string 1)))
@@ -129,11 +127,18 @@
         (switch-to-buffer (concat artist (concat " - " song)))
         (yank)
         (replace-regexp "<br />.*$" "" nil (point-min) (point-max))
-        (goto-char (point-min))))))
+        (goto-char (point-min))
+        (rebuild-kill-ring)))))
 
 (defun capitalize-string (string)
   "Correctly capitalize english strings"
   (concat (capitalize (substring string 0 1)) (substring string 1)))
+
+(defun rebuild-kill-ring ()
+  "Remove lyrics from the kill-ring and move it back to its
+previous state"
+  (setq kill-ring (cdr kill-ring))
+  (current-kill 1))
 
 (defun build-query-string (artist song)
   (let ((artist (replace-regexp-in-string "\s" "%20" (mapconcat 'capitalize-string (split-string artist) " ")))
