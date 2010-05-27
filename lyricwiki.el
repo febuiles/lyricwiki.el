@@ -119,15 +119,17 @@
   "Fetches the lyrics of SONG by ARTIST"
   (with-current-buffer (url-retrieve-synchronously (concat "http://www.lyricsplugin.com/plugin/" (build-query-string artist song)))
     (re-search-forward "<div id=\"lyrics\">\\(\\(.*\n\\)*\\)</div>\n\n<div id=\"admin\">" nil t) ; yarly.
-    (let ((match (match-string 1)))
+    (let ((match (match-string 1))
+          (buffer-name (concat artist (concat " - " song))))
       (if (equal match nil)
           (lyric-not-found)
         (kill-new match)
         (kill-buffer (current-buffer))
-        (switch-to-buffer (concat artist (concat " - " song)))
+        (kill-buffer-if-exists buffer-name) ;; don't repeat lyrics in existing buffer
+        (switch-to-buffer buffer-name)
         (yank)
         (replace-regexp "<br />.*$" "" nil (point-min) (point-max))
-        (goto-char (point-min))
+        (beginning-of-buffer)
         (rebuild-kill-ring)))))
 
 (defun capitalize-string (string)
@@ -139,6 +141,12 @@
 previous state"
   (setq kill-ring (cdr kill-ring))
   (current-kill 1))
+
+(defun kill-buffer-if-exists (buffer-name)
+  "Kills `buffer-name' if it exists, does nothing if it does't"
+  (let ((buffer (get-buffer buffer-name)))
+    (if buffer
+        (kill-buffer buffer))))
 
 (defun build-query-string (artist song)
   (let ((artist (replace-regexp-in-string "\s" "%20" (mapconcat 'capitalize-string (split-string artist) " ")))
