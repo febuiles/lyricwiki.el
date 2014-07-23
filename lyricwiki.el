@@ -115,21 +115,36 @@
   (interactive "sArtist: \nsSong: ")
   (fetch-lyrics artist song))
 
+(defconst lyrics-new-page-regex
+  "\n&lt;!-- PUT LYRICS HERE (and delete this entire line) -->\n"
+  "Message returned by the wiki page when the lyric isn't found.")
+
+(defconst lyrics-extract-regex
+  "&lt;lyrics>\\(\\(.*\n\\)*\\)&lt;/lyrics>"
+  "Regular expression that will match the lyrics content from the web page.")
+
 (defun fetch-lyrics (artist song)
   "Fetches the lyrics of SONG by ARTIST"
-  (with-current-buffer (url-retrieve-synchronously (concat "http://www.lyricsplugin.com/plugin/" (build-query-string artist song)))
-    (re-search-forward "<div id=\"lyrics\">\\(\\(.*\n\\)*\\)</div>\n\n<div id=\"admin\">" nil t) ; yarly.
-    (let ((match (match-string 1))
-          (buffer-name (concat artist (concat " - " song))))
-      (if (equal match nil)
+  (with-current-buffer
+      (url-retrieve-synchronously
+       (concat "http://lyrics.wikia.com/" (build-query-string artist song)))
+    (re-search-forward lyrics-extract-regex nil t) ; yarly.
+    (let* ((match (match-string 1))
+           (title (progn
+                    (modify-syntax-entry ?' "w")
+                    (capitalize (concat artist " - " song))))
+           (buffer-name (concat "*Lyrics: " title "*")))
+      (if (or (equal match nil)
+              (string= match lyrics-new-page-regex))
           (lyric-not-found)
         (kill-new match)
         (kill-buffer (current-buffer))
         (kill-buffer-if-exists buffer-name) ;; don't repeat lyrics in existing buffer
         (switch-to-buffer buffer-name)
+        (insert (format "%s\n" title))
         (yank)
-        (replace-regexp "<br />.*$" "" nil (point-min) (point-max))
         (beginning-of-buffer)
+        (view-mode)
         (rebuild-kill-ring)))))
 
 (defun capitalize-string (string)
@@ -140,7 +155,8 @@
   "Remove lyrics from the kill-ring and move it back to its
 previous state"
   (setq kill-ring (cdr kill-ring))
-  (current-kill 1))
+  (if kill-ring
+      (current-kill 1)))
 
 (defun kill-buffer-if-exists (buffer-name)
   "Kills `buffer-name' if it exists, does nothing if it does't"
@@ -149,9 +165,13 @@ previous state"
         (kill-buffer buffer))))
 
 (defun build-query-string (artist song)
-  (let ((artist (replace-regexp-in-string "\s" "%20" (mapconcat 'capitalize-string (split-string artist) " ")))
-        (song (replace-regexp-in-string "\s" "%20" (mapconcat 'capitalize-string (split-string song) " "))))
-    (format "?title=%s&artist=%s" song artist)))
+  (let ((artist
+         (replace-regexp-in-string
+          "\s" "_" (mapconcat 'capitalize-string (split-string artist) " ")))
+        (song
+         (replace-regexp-in-string
+          "\s" "_" (mapconcat 'capitalize-string (split-string song) " "))))
+    (format "%s:%s?action=edit" artist song)))
 
 (defun lyric-not-found ()
   (message "Lyrics not found"))
