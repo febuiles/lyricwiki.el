@@ -157,7 +157,7 @@
 starting on point P."
   (goto-char p)
   (delete-region (point)
-                 (progn (forward-paragraph)
+                 (progn (forward-paragraph 2)
                         (point))))
 
 (defun lyrics-build-query-s (artist title)
