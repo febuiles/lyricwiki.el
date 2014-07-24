@@ -4,10 +4,11 @@
 
 ;; Author: Federico Builes <federico.builes@gmail.com>
 ;; Contributors:
+;; Francisco Jurado
 ;; Adolfo Builes <builes.adolfo@gmail.com>
 
 ;; Created: 1 Dec 2008
-;; Version: 1.4
+;; Version: 1.5
 ;; Keywords: lyrics lyricwiki
 
 ;; This file is NOT part of GNU Emacs.
@@ -29,7 +30,6 @@
 
 ;;; Commentary:
 
-;; This is an Emacs mode to fetch lyrics different online sources.
 ;; Just press M-x lyrics, enter your artist and the song and you
 ;; should get your lyrics right away.
 
@@ -56,18 +56,18 @@
 ;;   M-x lyrics-amarok
 ;;   M-x lyrics-rhythmbox
 ;;
-;; Finally, if you always want me to automatically fetch the current playing
-;; artist/song then just set me up in the defalias down there!
+;; Finally, if you always want to automatically fetch the current playing
+;; artist/song then just set up the defalias below:
 ;;
 ;;; Code:
+
+(require 'url)
 
 ;; Modify the second symbol to use your preferred player:
 ;; lyrics-manual: Manually enter the artist and song name.
 ;; lyrics-amarok: Use the current playing track in Amarok.
 ;; lyrics-itunes: Use the current playing track in iTunes (OS X).
 ;; lyrics-rhythmbox: Use the current playing track in Rhythmbox.
-(require 'url)
-
 (defalias 'lyrics 'lyrics-manual)
 
 ;; Stop modifying stuff here
@@ -104,10 +104,10 @@
   (interactive)
   (let* ((artist
           (shell-command-to-string
-           "arch -i386 osascript -e'tell application \"iTunes\"' -e'get artist of current track' -e'end tell'"))
+           "osascript -e'tell application \"iTunes\"' -e'get artist of current track' -e'end tell'"))
          (song
           (shell-command-to-string
-           "arch -i386 osascript -e'tell application \"iTunes\"' -e'get name of current track' -e'end tell'" )))
+           "osascript -e'tell application \"iTunes\"' -e'get name of current track' -e'end tell'" )))
     (fetch-lyrics (substring artist 0 -1) (substring song 0 -1))))
 
 (defun lyrics-manual (artist song)

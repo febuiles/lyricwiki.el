@@ -1,12 +1,7 @@
 LyricWiki - An Emacs mode to fetch lyrics
 ========================
-
-**Update**: The LyricWiki API was [brought
-  down](http://groups.google.com/group/lyricwiki-api/browse_thread/thread/733ccd919d654040) by the
-  awesome music labels, so we're obtaining the lyrics from somewhere else (but maintaining the same name).
-
-This small mode fetches your lyrics from different online sources and opens a new buffer
-with them.
+This mode opens a new buffer with the lyrics of the song you're currently
+listening to.
 
 Installation and Usage
 ------------
@@ -23,9 +18,8 @@ Add it to your load list and require it:
     (add-to-list 'load-path "~/some_directory/lyricwiki.el")
     (require 'lyricwiki)
 
-(Optional) If you want this mode to automatically fetch your current playing
-song in Amarok, iTunes or Rhythmbox then set the defalias in lyricwiki.el to
-whatever you want:
+If you want this mode to automatically fetch your current playing
+song in iTunes, Rhytmbox or Amarok then set the `defalias` in `lyricwiki.el`:
 
     ;; Any of these 3 will do
     (defalias 'lyrics 'lyrics-itunes)
@@ -42,7 +36,4 @@ Finally, if you want to manually enter the song details you can just call:
 
 Helping, Contact, E-T-C
 --------------------------------
-* Want to help? If you find any lyrics rendering with weird characters please
-  report them in the Issues tracker.
-
-
+Pull requests are always welcome, bugs should be filed in the [Issue Tracker](https://github.com/febuiles/lyricwiki.el/issues).
