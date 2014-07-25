@@ -4,7 +4,7 @@
 
 ;; Author: Federico Builes <federico.builes@gmail.com>
 ;; Contributors:
-;; Francisco Jurado
+;; Francisco Jurado <fjurado@cimat.mx>
 ;; Adolfo Builes <builes.adolfo@gmail.com>
 
 ;; Created: 1 Dec 2008
@@ -156,9 +156,14 @@
   "Delete paragraph corresponding to the HTTP header
 starting on point P."
   (goto-char p)
-  (delete-region (point)
-                 (progn (forward-paragraph 2)
-                        (point))))
+  (delete-region
+   (point) (let ((n 2))
+             ; There's a discrepancy between windows and unix
+             ; on how the response is presented.
+             ; 1 paragraph in windows and 2 paragraphs in unix.
+             (if (eq system-type 'windows-nt) (setq n 1))
+             (forward-paragraph n)
+             (point))))
 
 (defun lyrics-build-query-s (artist title)
   (let ((artist (lyrics-trim-s artist))
