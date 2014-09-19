@@ -30,7 +30,7 @@
 
 ;;; Commentary:
 
-;; Just press M-x lyrics, enter your artist and the song and you
+;; Just press M-x lyricwiki/lyrics, enter your artist and the song and you
 ;; should get your lyrics right away.
 
 ;; Installation:
@@ -45,16 +45,16 @@
 ;;
 ;; Now just press:
 ;;
-;;   M-x lyrics
+;;   M-x lyricwiki/lyrics
 ;;
 ;; And get your lyrics.
 ;;
 ;; If you want to automatically fetch the lyrics for the current song in
 ;; iTunes (OS X), Amarok or Rhythmbox (Linux) you can use:
 ;;
-;;   M-x lyrics-itunes
-;;   M-x lyrics-amarok
-;;   M-x lyrics-rhythmbox
+;;   M-x lyricwiki/lyrics-itunes
+;;   M-x lyricwiki/lyrics-amarok
+;;   M-x lyricwiki/lyrics-rhythmbox
 ;;
 ;; Finally, if you always want to automatically fetch the current playing
 ;; artist/song then just set up the defalias below:
@@ -64,42 +64,63 @@
 (require 'url)
 
 ;; Modify the second symbol to use your preferred player:
-;; lyrics-manual: Manually enter the artist and song name.
-;; lyrics-amarok: Use the current playing track in Amarok.
-;; lyrics-itunes: Use the current playing track in iTunes (OS X).
-;; lyrics-rhythmbox: Use the current playing track in Rhythmbox.
-(defalias 'lyrics 'lyrics-manual)
+;; lyricwiki/lyrics-manual: Manually enter the artist and song name.
+;; lyricwiki/lyrics-amarok: Use the current playing track in Amarok.
+;; lyricwiki/lyrics-itunes: Use the current playing track in iTunes (OS X).
+;; lyricwiki/lyrics-rhythmbox: Use the current playing track in Rhythmbox.
+(defalias 'lyricwiki/lyrics 'lyricwiki/lyrics-manual)
 
 ;; Stop modifying stuff here
 
-(defun amarok-song ()
+(defvar lyricwiki/syntax-table
+  (let ((st (make-syntax-table)))
+    (modify-syntax-entry ?' "w" st)
+    st)
+  "Syntax table used for `lyricwiki-mode'.")
+
+(defvar lyricwiki/map
+  (let ((map (make-sparse-keymap)))
+    (set-keymap-parent map special-mode-map)
+    (define-key map "l" 'lyricwiki/lyrics)
+    (define-key map "m" 'lyricwiki/lyrics-manual)
+    (define-key map "k" 'lyricwiki/kill-this-buffer)
+    map)
+  "Keymap for `lyricwiki-mode'.")
+
+(define-derived-mode lyricwiki-mode special-mode "lyricwiki"
+  "Major mode for fetching and displaying lyrics \\[lyricwiki/lyrics].
+\\{lyricwiki/map}"
+  (use-local-map lyricwiki/map)
+  (set-syntax-table lyricwiki/syntax-table))
+
+(defun lyricwiki/amarok-song ()
   (interactive)
   (let ((trackMetadata (shell-command-to-string "qdbus org.mpris.amarok /Player GetMetadata")))
     (and (string-match (format "\\<%s: \\([ \\\|:';\?\/>\.<,0-9A-Za-z¢-ÿ]+\\)\\>" "title") trackMetadata))
     (match-string 1 trackMetadata)))
 
-(defun amarok-artist ()
+(defun lyricwiki/amarok-artist ()
   (interactive)
   (let ((trackMetadata (shell-command-to-string "qdbus org.mpris.amarok /Player GetMetadata")))
     (and (string-match (format "\\<%s: \\([ \\\|:';\?\/>\.<,0-9A-Za-z¢-ÿ]+\\)\\>" "artist") trackMetadata))
     (match-string 1 trackMetadata)))
 
-(defun lyrics-amarok ()
+(defun lyricwiki/lyrics-amarok ()
   "Grabs current playing song in Amarok and fetches its lyrics"
   (interactive)
   (let ((artist (amarok-artist ))
-        (song (amarok-song)))
-    (fetch-lyrics artist song)))
+        (song (lyricwiki/amarok-song)))
+    (lyricwiki/fetch-lyrics artist song)))
 
-(defun lyrics-rhythmbox ()
+(defun lyricwiki/lyrics-rhythmbox ()
   "Grabs current playing song in Rhythmbox and fetches its lyrics"
   (interactive)
   (let ((song (shell-command-to-string "rhythmbox-client --print-playing-format %tt"))
         (artist (shell-command-to-string "rhythmbox-client --print-playing-format %ta")))
-    (fetch-lyrics (substring artist 0 -1) (substring song 0 -1))))
+    (lyricwiki/fetch-lyrics (substring artist 0 -1) (substring song 0 -1))))
 
 ;; Only available for OS X
-(defun lyrics-itunes ()
+(defun lyricwiki/lyrics-itunes ()
   "Grabs current playing song in iTunes and fetches its lyrics"
   (interactive)
   (let* ((artist
@@ -108,51 +129,58 @@
          (song
           (shell-command-to-string
            "osascript -e'tell application \"iTunes\"' -e'get name of current track' -e'end tell'" )))
-    (fetch-lyrics (substring artist 0 -1) (substring song 0 -1))))
+    (lyricwiki/fetch-lyrics (substring artist 0 -1) (substring song 0 -1))))
 
-(defun lyrics-manual (artist song)
+(defun lyricwiki/lyrics-manual (artist song)
   "Fetches the lyrics of SONG by ARTIST"
   (interactive "sArtist: \nsSong: ")
-  (fetch-lyrics artist song))
+  (lyricwiki/fetch-lyrics artist song))
 
-(defconst lyrics-not-found-msg
+(defconst lyricwiki/not-found-msg
   "Sorry, We don't have lyrics for this song yet")
 
-(defun fetch-lyrics (artist song)
+(defun lyricwiki/fetch-lyrics (artist song)
   "Fetches the lyrics of SONG by ARTIST"
   (with-current-buffer
       (url-retrieve-synchronously
        (concat "http://makeitpersonal.co/lyrics"
-               (lyrics-build-query-s artist song)))
-    (let* ((artist (lyrics-trim-s artist))
-           (song (lyrics-trim-s song))
-           (title (lyrics-capitalize-s
+               (lyricwiki/build-query-s artist song)))
+    (let* ((artist (lyricwiki/trim-s artist))
+           (song (lyricwiki/trim-s song))
+           (title (lyricwiki/capitalize-s
                    (concat artist " - " song)))
            (buffer-name (format "*Lyrics: %s*" title)))
       (beginning-of-buffer)
-      (if (re-search-forward lyrics-not-found-msg nil t)
+      (if (re-search-forward lyricwiki/not-found-msg nil t)
           (progn
             (kill-buffer (current-buffer))
-            (message lyrics-not-found-msg))
-        (kill-buffer-if-exists buffer-name)
-        (lyrics-delete-http-header (point))
-        (insert (format "%s" title))
+            (message lyricwiki/not-found-msg))
+        (lyricwiki/kill-buffer-if-exists buffer-name)
+        (lyricwiki/delete-http-header (point))
+        (lyricwiki/set-title title)
         (rename-buffer buffer-name)
         (switch-to-buffer buffer-name)
-        (special-mode)))))
+        (lyricwiki-mode)))))
 
-(defun lyrics-capitalize-s (string)
+(defun lyricwiki/set-title (title)
+  (save-excursion
+    (insert (format "\n%s" title))
+    (let ((end (point)))
+      (forward-line 0)
+      (add-text-properties (point) end
+                           '(face (bold underline))))))
+
+(defun lyricwiki/capitalize-s (string)
   "Correctly capitalize English STRING."
-  (modify-syntax-entry ?' "w")
   (capitalize string))
 
-(defun kill-buffer-if-exists (buffer-name)
+(defun lyricwiki/kill-buffer-if-exists (buffer-name)
   "Kills `buffer-name' if it exists, does nothing if it doesn't"
   (let ((buffer (get-buffer buffer-name)))
     (if buffer
         (kill-buffer buffer))))
 
-(defun lyrics-delete-http-header (p)
+(defun lyricwiki/delete-http-header (p)
   "Delete paragraph corresponding to the HTTP header
 starting on point P."
   (goto-char p)
@@ -165,12 +193,18 @@ starting on point P."
              (forward-paragraph n)
              (point))))
 
-(defun lyrics-build-query-s (artist title)
-  (let ((artist (lyrics-trim-s artist))
-        (title (lyrics-trim-s title)))
+(defun lyricwiki/kill-this-buffer ()
+  "Kill this buffer without prompting to save it."
+  (interactive)
+  (set-buffer-modified-p nil)
+  (kill-buffer))
+
+(defun lyricwiki/build-query-s (artist title)
+  (let ((artist (lyricwiki/trim-s artist))
+        (title (lyricwiki/trim-s title)))
     (url-encode-url (format "?artist=%s&title=%s" artist title))))
 
-(defun lyrics-trim-s (string)
+(defun lyricwiki/trim-s (string)
   (replace-regexp-in-string
    "\\`\\s-+" "" (replace-regexp-in-string "\\s-+\\'" "" string)))
 
