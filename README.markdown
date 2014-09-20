@@ -22,17 +22,17 @@ If you want this mode to automatically fetch your current playing
 song in iTunes, Rhytmbox or Amarok then set the `defalias` in `lyricwiki.el`:
 
     ;; Any of these 3 will do
-    (defalias 'lyrics 'lyrics-itunes)
-    (defalias 'lyrics 'lyrics-amarok)
-    (defalias 'lyrics 'lyrics-rhythmbox)
+    (defalias 'lyricwiki/lyrics 'lyricwiki/lyrics-itunes)
+    (defalias 'lyricwiki/lyrics 'lyricwiki/lyrics-amarok)
+    (defalias 'lyricwiki/lyrics 'lyricwiki/lyrics-rhythmbox)
 
 Now just press:
 
-    M-x lyrics
+    M-x lyricwiki/lyrics
 
 Finally, if you want to manually enter the song details you can just call:
 
-    M-x lyrics-manual
+    M-x lyricwiki/lyrics-manual
 
 Helping, Contact, E-T-C
 --------------------------------
