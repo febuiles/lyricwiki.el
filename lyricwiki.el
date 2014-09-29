@@ -3,12 +3,12 @@
 ;; Copyright (C) 2009 Federico Builes
 
 ;; Author: Federico Builes <federico.builes@gmail.com>
+;;         Francisco Jurado <fjurado@cimat.mx>
 ;; Contributors:
-;; Francisco Jurado <fjurado@cimat.mx>
 ;; Adolfo Builes <builes.adolfo@gmail.com>
 
 ;; Created: 1 Dec 2008
-;; Version: 1.5
+;; Version: 2.0
 ;; Keywords: lyrics lyricwiki
 
 ;; This file is NOT part of GNU Emacs.
